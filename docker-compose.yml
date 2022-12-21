@@ -1,0 +1,84 @@
+version: "3.3"
+name: bootcamp
+
+x-common: &common
+  restart: always
+
+x-microservices: &microservice
+  build: ./microservices
+  <<: *common
+
+services:
+  flights:
+    <<: *microservice
+    ports:
+      - "4990:80"
+    secrets:
+      - flight-api-key
+    working_dir: /app/flights
+    volumes:
+      - "./microservices/flights:/app/flights"
+
+#  cars:
+#    <<: *microservice
+#    ports:
+#      - "4991:80"
+#    secrets:
+#      - cars-api-key
+#    working_dir: /app/cars
+#    volumes:
+#      - "./microservices/cars:/app/cars"
+
+  booking:
+    <<: *microservice
+    ports:
+      - "4992:80"
+    secrets:
+      - booking-api-key
+    working_dir: /app/booking
+    volumes:
+      - "./microservices/booking:/app/booking"
+
+  web:
+    build: ./frontend
+    ports:
+      - "80:80"
+#      - "80:3000"
+    secrets:
+      - airports-api-key
+    depends_on:
+      - flights
+      - booking
+    <<: *common
+    volumes:
+      - "./frontend:/usr/src/app"
+#      - type: volume
+#        source: mydata
+#        target: /data
+#        volume:
+#          nocopy: true
+#      - type: bind
+#        source: ./static
+#        target: /opt/app/static
+#
+#  db:
+#    image: neo4j:latest
+#    volumes:
+#      - "/var/run/postgres/postgres.sock:/var/run/postgres/postgres.sock"
+#      - "dbdata:/var/lib/postgresql/data"
+#
+#volumes:
+#  mydata:
+#  dbdata:
+
+secrets:
+  flight-api-key:
+    file: ./secrets/flights-api.txt
+#  cars-api-key:
+#    file: ./secrets/cars-api.txt
+  booking-api-key:
+    file: ./secrets/booking-api.txt
+  airports-api-key:
+    file: ./secrets/airports-api.txt
+#  my_other_secret:
+#    external: true

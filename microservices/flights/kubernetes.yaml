@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+  name: flight
+  namespace: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      workload.user.cattle.io/workloadselector: apps.deployment-backend-flight
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        workload.user.cattle.io/workloadselector: apps.deployment-backend-flight
+    spec:
+      containers:
+      - image: amarisbootcamp.azurecr.io/bootcamp/microservices:latest
+        imagePullPolicy: Always
+        name: fligtht-api
+        ports:
+        - containerPort: 80
+          hostPort: 80
+          name: flight-port
+          protocol: TCP
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        workingDir: /app/flights
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: acr-cred
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flight
+  namespace: backend
+spec:
+  ipFamilies:
+  - IPv4
+  ports:
+  - name: flight-port
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    workload.user.cattle.io/workloadselector: apps.deployment-backend-flight
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+  name: flight-ingress
+  namespace: backend
+spec:
+  rules:
+  - http:
+      paths:
+      - backend:
+          service:
+            name: flight
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
