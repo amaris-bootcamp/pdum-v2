@@ -1,0 +1,60 @@
+version: 2.1
+orbs:
+  azure-acr: circleci/azure-acr@0.2.1 # https://circleci.com/developer/orbs/orb/circleci/azure-aks
+  azure-aks: circleci/azure-aks@0.3.0 # https://circleci.com/developer/orbs/orb/circleci/azure-acr
+  docker: circleci/docker@2.1.2 # https://circleci.com/developer/orbs/orb/circleci/docker
+  kubernetes: circleci/kubernetes@0.4.0
+
+#  jobs:
+#    test:
+#      - steps:
+#          - checkout
+#          - docker/install-docker-tools
+#          - run:
+#              name: Run compose
+#              command: docker compose up
+# jobs:
+#   create-deployment:
+#     executor: azure-aks/default
+#     parameters:
+#       cluster-name:
+#         description: |
+#           Name of the AKS cluster
+#         type: string
+#       resource-group:
+#         description: |
+#           Resource group that the cluster is in
+#         type: string
+#     steps:
+#       - checkout
+#       - azure-aks/update-kubeconfig-with-credentials:
+#           cluster-name: k8s-bootcamp
+#           install-kubectl: true
+#           perform-login: true
+#           resource-group: AMAVLA_Azure-MLOps-Bootcamp
+#       - kubernetes/create-or-update-resource:
+#           resource-file-path: flights/kubernetes.yaml
+#           resource-name: deployment/flight
+
+workflows:
+  build-and-publish-microservices:
+    jobs:
+      - docker/publish:
+          image: bootcamp/microservices
+          tag: latest,$CIRCLE_SHA1,0.0.3
+          path: ./microservices
+          docker-context: ./microservices
+          registry: amarisbootcamp.azurecr.io
+#      - create-deployment:
+#          cluster-name: k8s-bootcamp
+#          resource-group: AMAVLA_Azure-MLOps-Bootcamp
+
+
+  build-and-publish-frontend:
+    jobs:
+      - docker/publish:
+          image: bootcamp/frontend
+          tag: latest,$CIRCLE_SHA1,0.0.3
+          path: ./frontend
+          docker-context: ./frontend
+          registry: amarisbootcamp.azurecr.io
