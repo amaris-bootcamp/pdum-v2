@@ -1,0 +1,10 @@
+version: 2.1
+orbs:
+  azure-acr: circleci/azure-acr@0.2.1 # https://circleci.com/developer/orbs/orb/circleci/azure-aks
+  azure-aks: circleci/azure-aks@0.3.0 # https://circleci.com/developer/orbs/orb/circleci/azure-acr
+  docker: circleci/docker@2.1.2 # https://circleci.com/developer/orbs/orb/circleci/docker
+
+workflows:
+  build-and-publish-microservices:
+
+  build-and-publish-frontend:
